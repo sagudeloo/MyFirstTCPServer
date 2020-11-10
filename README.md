@@ -19,8 +19,7 @@ En este repositorio se almacena el código de un protocolo de prueba, desarrolla
 - `rmfl`: Este comando elimina el archivo especificado de los archivos que se encuentran dentro del servidor. _Uso :_ `rmfl <Bucketname> <filename>`
 
 - `lsbk`: Este comando lista los Buckets creados que el servidor identifica. 
-
-- *Uso* : `lsbk`
+   *Uso* : `lsbk`
 
 - `lsfl`: Este comando lista los archivos que se encuentren en el servidor, y los almacena en un bucket. *Uso :* `lsfl <Bucketname>`
 
