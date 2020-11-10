@@ -1,5 +1,4 @@
 import socket
-import logging
 import threading
 import sys
 
@@ -115,8 +114,3 @@ class Client:
 
     def downloadFile(self, bucketName, fileName):
         self.sendCmd("dwfl"+" "+bucketName+" "+fileName)
-        
-
-
-c = Client()
-c.run()

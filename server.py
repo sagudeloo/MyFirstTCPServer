@@ -145,6 +145,3 @@ class Server:
     
     def fileExists(self, bucketName, fileName):
         return os.path.isfile(self.path+"/"+bucketName+"/"+fileName)
-
-s = Server()
-s.run()
