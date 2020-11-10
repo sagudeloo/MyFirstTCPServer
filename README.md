@@ -26,9 +26,9 @@ En este repositorio se almacena el código de un protocolo de prueba, desarrolla
 
 ### Imagenes
 
-![](D:\Este%20equipo\Documentos\MEGA\MEGAsync%20Uploads\Eafit\2020-2\Telemática\Práctica\Parte2\unknown%20(1).png)
+![](\unknown%20(1).png)
 
-![](D:\Este%20equipo\Documentos\MEGA\MEGAsync%20Uploads\Eafit\2020-2\Telemática\Práctica\Parte2\unknown.png)
+![](\unknown.png)
 
 ### Desarrolladores
 
