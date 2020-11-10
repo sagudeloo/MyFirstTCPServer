@@ -26,9 +26,9 @@ En este repositorio se almacena el código de un protocolo de prueba, desarrolla
 
 ### Imagenes
 
-![](\unknown%20(1).png)
+![](unknown%20(1).png)
 
-![](\unknown.png)
+![](unknown.png)
 
 ### Desarrolladores
 
