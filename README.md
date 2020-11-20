@@ -12,7 +12,7 @@ En este repositorio se almacena el código de un protocolo de prueba, desarrolla
 
 - `upfl`: Este comando permite la subida de un archivo desde el cliente al servidor, con este se garantiza su permanencia hasta que se decida eliminarlo, el cliente decide también en que Bucket será almacenado el archivo.
   
-  *Uso :*`upfl <Bucketname> <filename>`
+  *Uso :*`upfl <Bucketname> <filename> <filepath>`
 
 - `dwfl`: Este comando permite la descarga de un archivo específico desde el servidor hacia el cliente, este decide también de que Bucket será descargado el archivo *Uso :*`dwfl <Bucketname> <filename>`
 
