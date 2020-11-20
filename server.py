@@ -8,10 +8,11 @@ class Server:
     def __init__(self, port=4321, host="localhost", path=".", encoding="UTF-8"):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.host = host
-        self.port = port
+        self.cmdPort = port
+        self.dataPort = port+1
         self.path = path
         self.connections = list()
-        self.sock.bind((self.host, self.port))
+        self.sock.bind((self.host, self.cmdPort))
         self.encoding = encoding
     
     def run(self):
@@ -26,12 +27,12 @@ class Server:
                 x = threading.Thread(target=self.runClient, args=(conn, addr,))
                 x.start()
                 self.connections.append(x)
-            for x in connections:
+            for x in self.connections:
                 x.join()
         except KeyboardInterrupt:
             self.sock.close()
 
-    # This funtion run a thread with the client connection
+    # This function runs a thread with the client's connection
     def runClient(self, conn, addr): 
         connState = True
         print("Connection thread created.")
@@ -39,17 +40,17 @@ class Server:
             cmd = self.read(conn).decode(self.encoding)
             if cmd:
                 print(f"Command: {cmd}, from {addr}")
-                cmdResponse = self.interpretCmd(cmd)
+                cmdResponse = self.interpretCmd(conn,cmd)
                 print(f"Response: {cmdResponse}, to {addr}")
                 self.send(conn, bytes(cmdResponse, self.encoding))
 
-    # This funtion wait for a command from client connection
+    # This function waits for a command from client connection
     def read(self, conn):
         data = ""
         data = conn.recv(1024)
         return data
 
-    def send(self, conn, data):
+    def send(self,conn, data):
         conn.sendall(data)
 
     """ Commands
@@ -61,7 +62,7 @@ class Server:
         dwfl: download file
         rmfl: delete file """
     # This function interpret a command and execute respective instruction
-    def interpretCmd(self, cmd):
+    def interpretCmd(self,conn, cmd):
         cmdKey = cmd[:4]
         args = cmd[4:].split(" ")
         if (cmdKey == "mkbk"):
@@ -73,9 +74,15 @@ class Server:
         elif (cmdKey == "lsfl"):
             return self.listFiles(args[1])
         elif (cmdKey == "upfl"):
-            return self.recv(args[1], args[2])
+            x = threading.Thread(target=self.recvFile, args=(args[1], args[2]))
+            x.start()
+            x.join()
+            return ""
         elif (cmdKey == "dwfl"):
-            return self.sendFile(args[1], args[2])
+            x = threading.Thread(target=self.sendFile, args=(args[1], args[2]))
+            x.start()
+            x.join()
+            return ""
         elif (cmdKey == "rmfl"):
             return self.removeFile(args[1], args[2])
         else:
@@ -114,24 +121,40 @@ class Server:
         else:
             return "1 Bucket does not exist."
     
-    def recvFile(self):
-        pass
+    def recvFile(self, bucketName, fileName):
+        if (self.bucketExists(bucketName)):
+            dataSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            dataSock.bind((self.host, self.dataPort))
+            dataSock.listen(1)
+            conn, _ = dataSock.accept()
+            with open(self.path+"/"+bucketName+"/"+fileName, "wb") as file:
+                data = conn.recv(1024)
+                while (data):
+                    file.write(data)
+                    data = conn.recv(1024)
+            dataSock.close()
+            return "0 Upload finished."
+        else:
+            return "1 Bucket does not exist."
     
-    def sendFile(self, conn):
-
-        if (bucketExists(bucketName)):
-            if(fileExists(bucketName, fileName)):
-                send(conn, b"0 Okay")
+    def sendFile(self, bucketName, fileName):
+        if (self.bucketExists(bucketName)):
+            if(self.fileExists(bucketName, fileName)):
+                dataSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                dataSock.bind((self.host, self.dataPort))
+                dataSock.listen(1)
+                conn, _ = dataSock.accept()
                 with open(self.path+"/"+bucketName+"/"+fileName, "rb") as file:
                     data = file.read(1024)
-                while (data):
-                    send(conn, data)
-                    data = file.read(1024)
+                    while (data):
+                        conn.sendall(data)
+                        data = file.read(1024)
+                dataSock.close()
+                return "0 Download finished."
             else:
                 return "1 File does not exist."
         else:
             return "1 Bucket does not exist."
-        return "0 Transmission finished."
     
     def removeFile(self, bucketName, fileName):
         if (os.path.exists(self.path+"/"+bucketName+"/"+fileName)):

@@ -1,6 +1,8 @@
 import socket
 import threading
 import sys
+import os
+import time
 
 class Client:
 
@@ -8,6 +10,7 @@ class Client:
         self.sock = socket.socket()
         self.host = host
         self.port = port
+        self.dataPort = port+1
         self.encoding = "UTF-8"
     
     # This function start connecte the client with the server an continue de execution
@@ -62,28 +65,27 @@ class Client:
                 return False
         elif (cmd == "lsbk"):
             self.sendCmd(cmd)
+            return True
         elif (cmd == "lsfl"):
-            if (len(args) >= 2):
-                self.sendCmd(cmd+" "+args[0]+" "+args[1])
+            if (len(args) >= 1):
+                self.sendCmd(cmd+" "+args[0])
                 return True
             else:
                 print("Missing arguments")
                 return False
         elif (cmd == "upfl"):
             if (len(args) >= 2):
-                x = threading.Thread(target=self.uploadFile, args=(args[0],args[1]))
+                x = threading.Thread(target=self.uploadFile, args=(args[0],args[1],args[2]))
                 x.start()
-                x.join()
-                return True
+                return False
             else:
                 print("Missing arguments")
                 return False
         elif (cmd == "dwfl"):
             if (len(args) >= 2):
-                threading.Thread(target=self.downloadFile, args=(args[0],args[1]))
+                x = threading.Thread(target=self.downloadFile, args=(args[0],args[1]))
                 x.start()
-                x.join()
-                return True
+                return False
             else:
                 print("Missing arguments")
                 return False
@@ -109,8 +111,34 @@ class Client:
         data = self.sock.recv(1024)
         return data
 
-    def uploadFile(self, bucketName, fileName):
-        pass
+    def uploadFile(self, bucketName, fileName, filePath):
+        if(self.fileExists(filePath)):
+            self.sendCmd(f"upfl {bucketName} {fileName}")
+            time.sleep(1)
+            dataSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            dataSock.connect((self.host, self.dataPort))
+            with open(os.path.join(filePath), "rb") as file:
+                data = file.read(1024)
+                while (data):
+                    dataSock.sendall(data)
+                    data = file.read(1024)
+            dataSock.close()
+            return "0 Download finished."
+        else:
+            return "1 File does not exist."
 
     def downloadFile(self, bucketName, fileName):
-        self.sendCmd("dwfl"+" "+bucketName+" "+fileName)
+        self.sendCmd(f"dwfl {bucketName} {fileName}")
+        time.sleep(1)
+        dataSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        dataSock.connect((self.host, self.dataPort))
+        with open(os.curdir+"/"+fileName, "wb") as file:
+            data = dataSock.recv(1024)
+            while (data):
+                file.write(data)
+                data = dataSock.recv(1024)
+        dataSock.close()
+        return "0 Download finished."
+
+    def fileExists(self, filePath):
+        return os.path.isfile(filePath)
